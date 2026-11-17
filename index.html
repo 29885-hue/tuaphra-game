@@ -44,6 +44,13 @@ body{font-family:"Sarabun","Noto Sans Thai",Tahoma,sans-serif;color:var(--ink);b
 #end.win{background:rgba(20,10,0,.35)}
 #end.win #endt{font-size:30px;font-weight:700;color:#ffd54a;text-shadow:0 0 18px #ff9d00;animation:bn .9s ease-out}
 @keyframes bn{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+#rk{font-size:18px;background:transparent;border:1px solid var(--line);border-radius:10px;color:var(--ink);cursor:pointer;padding:2px 8px}
+#end{overflow:auto}
+#end input{font:inherit;padding:8px 10px;border-radius:10px;border:2px solid #fff;background:rgba(255,255,255,.15);color:#fff;text-align:center;width:min(220px,60vw)}
+#nm{display:none;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+#board{font-size:15px;line-height:1.7;min-width:250px;max-width:92%;max-height:30vh;overflow:auto;background:rgba(0,0,0,.4);border-radius:12px;padding:8px 14px;display:none;text-align:left}
+#board>div{display:flex;justify-content:space-between;gap:16px}
+#sc{font-size:20px}
 #mus{font-size:18px;background:transparent;border:1px solid var(--line);border-radius:10px;color:var(--ink);cursor:pointer;padding:2px 8px}
 @media (min-width:800px){
  body{display:grid;grid-template-columns:220px 1fr 360px}
@@ -54,7 +61,7 @@ body{font-family:"Sarabun","Noto Sans Thai",Tahoma,sans-serif;color:var(--ink);b
 }
 </style></head>
 <body>
-<div id="side"><div id="stars"></div><button id="mus" onclick="toggleMus()">🔊</button><div id="cnt"></div><div id="info">ลากชุดจากรายการไปวางบนตัวละคร หรือแตะชุดแล้วแตะที่ตัวละคร</div></div>
+<div id="side"><div id="stars"></div><button id="mus" onclick="toggleMus()">🔊</button><button id="rk" onclick="showBoard()">🏆</button><div id="cnt"></div><div id="tm" style="font-size:13px"></div><div id="info">ลากชุดจากรายการไปวางบนตัวละคร หรือแตะชุดแล้วแตะที่ตัวละคร</div></div>
 <div id="stage">
 <svg id="ch" viewBox="0 -72 300 634" xmlns="http://www.w3.org/2000/svg">
 <defs>
@@ -70,7 +77,7 @@ body{font-family:"Sarabun","Noto Sans Thai",Tahoma,sans-serif;color:var(--ink);b
 <g transform="translate(112 92)"><g id="pow" style="opacity:0;transform-box:fill-box;transform-origin:center"><path d="M0 -34L8 -14L28 -22L18 -4L38 4L16 12L22 32L4 22L-8 36L-12 16L-32 20L-22 2L-38 -10L-16 -12Z" fill="#ffd21f" stroke="#e0302d" stroke-width="3"/><text y="6" text-anchor="middle" font-size="16" font-weight="900" fill="#e0302d" stroke="#fff" stroke-width=".6" font-family="Sarabun,Tahoma,sans-serif">ตุ้บ!</text></g></g>
 </svg>
 <canvas id="fx"></canvas><div id="flash"></div><div id="stp"></div><div id="msg"></div>
-<div id="end"><div id="endt"></div><button onclick="location.reload()">เล่นใหม่</button></div>
+<div id="end"><div id="endt"></div><div id="sc"></div><div id="nm"><input id="pn" maxlength="14" placeholder="ใส่ชื่อของคุณ"><button onclick="saveScore()">บันทึกคะแนน</button></div><div id="board"></div><div style="display:flex;gap:10px"><button id="rp" onclick="location.reload()">เล่นใหม่</button><button id="cl" onclick="closeBoard()" style="display:none">ปิด</button></div></div>
 </div>
 <div id="panel"><div id="tabs"></div><div id="grid"></div></div>
 <script>
@@ -171,11 +178,11 @@ function drop(id){if(done)return;const it=I.find(i=>i.id==id);sel=null;
   if(placed.size==TOTAL)setTimeout(win,900)}
  else{stars--;punish();draw();say(it.ok?'✗ '+it.n+' เป็นชุดตัวพระ แต่ยังไม่ถึงขั้นนี้ เสียหนึ่งดาว':'✗ '+it.n+' ไม่ใช่เครื่องแต่งกายตัวพระ เสียหนึ่งดาว','#e0604d');list();
   if(!stars){done=1;setTimeout(()=>fin('ดาวหมดแล้ว – แพ้ ลองใหม่อีกครั้งนะ'),700)}}}
-function win(){done=1;celebrate();root.style.setProperty('--shirt','#1d3f9a');root.style.setProperty('--nung','#b3141f');
+function win(){done=1;tEnd=Date.now();celebrate();root.style.setProperty('--shirt','#1d3f9a');root.style.setProperty('--nung','#b3141f');
  ['c1','c2','c3'].forEach((k,i)=>$(k).setAttribute('stop-color',['#ff9a9a','#d8222f','#6b0a12'][i]));
  $('av0').style.display=$('av').style.display='';setTimeout(()=>fin('🎉 ชนะ! แต่งถูกครบ ตัวพระอัปเกรดเป็นตัวพระ Avengers'),2500)}
 function punish(){const f=$('flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.type='sawtooth';o.frequency.setValueAtTime(180,a.currentTime);o.frequency.linearRampToValueAtTime(90,a.currentTime+.3);g.gain.setValueAtTime(.15,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+.3);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.3)}catch(e){}}
-function fin(t){stopMusic();fan(t.startsWith('🎉')?[523,659,784,1047,1319]:[392,370,330,262]);$('endt').textContent=t;$('end').style.display='flex';$('end').classList.toggle('win',t.startsWith('🎉'))}
+function fin(t){stopMusic();fan(t.startsWith('🎉')?[523,659,784,1047,1319]:[392,370,330,262]);$('endt').textContent=t;$('end').style.display='flex';if(t.startsWith('🎉'))winScreen();else{$('sc').textContent='';$('nm').style.display='none';$('board').style.display='none';$('cl').style.display='none';$('rp').style.display=''}$('end').classList.toggle('win',t.startsWith('🎉'))}
 const inside=e=>{const r=ch.getBoundingClientRect();return e.clientX>r.left&&e.clientX<r.right&&e.clientY>r.top&&e.clientY<r.bottom};
 grid.addEventListener('pointerdown',e=>{const c=e.target.closest('.card');if(!c||done)return;e.preventDefault();
  drag={c,g:c.cloneNode(true)};drag.g.className='card ghost';document.body.appendChild(drag.g);x0=e.clientX;y0=e.clientY;mvd=0;mv(e);c.style.opacity=.35});
@@ -226,4 +233,18 @@ function celebrate(){const cv=$('fx'),c=cv.getContext('2d'),D=devicePixelRatio||
   if(el<12000||P.length)requestAnimationFrame(loop);else c.clearRect(0,0,W,H)})(t0)}
 function toggleMus(){musicOn=!musicOn;$('mus').textContent=musicOn?'🔊':'🔇';if(out)out.gain.value=musicOn?1:0;else if(musicOn)startMusic()}
 addEventListener('pointerdown',()=>{if(musicOn)startMusic()},{once:true,capture:true});
+let tStart=0,tEnd=0,SC={s:0,st:0,t:0};
+const LK='tuaphra_lb',fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function getLB(){try{const a=JSON.parse(localStorage.getItem(LK)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function setLB(a){try{localStorage.setItem(LK,JSON.stringify(a))}catch(e){}}
+function renderBoard(){const a=getLB();$('board').innerHTML=(a.length?a.map((r,i)=>`<div><span>${['🥇','🥈','🥉'][i]||(i+1)+'.'} ${esc(r.n)}</span><span>${r.s} (${'★'.repeat(r.st)} ${fmt(r.t)})</span></div>`).join(''):'<div>ยังไม่มีอันดับ</div>')+'<div style="opacity:.6;font-size:11px;margin-top:6px">เก็บอันดับในเครื่องนี้เท่านั้น</div>'}
+function winScreen(){const t=Math.max(1,Math.round((tEnd-(tStart||tEnd))/1000));SC={s:stars*1000+Math.max(0,300-t)*5,st:stars,t};
+ $('sc').innerHTML='คะแนน <b>'+SC.s+'</b><br><small>ดาวเหลือ '+stars+' · เวลา '+fmt(t)+'</small>';
+ let nm='';try{nm=localStorage.getItem('tuaphra_name')||''}catch(e){}$('pn').value=nm;$('nm').style.display='flex';renderBoard();$('board').style.display='block';$('cl').style.display='none';$('rp').style.display=''}
+function saveScore(){const n=($('pn').value.trim()||'ผู้เล่นนิรนาม').slice(0,14),e={n,s:SC.s,st:SC.st,t:SC.t},a=getLB();a.push(e);a.sort((x,y)=>y.s-x.s||x.t-y.t);const i=a.indexOf(e);a.length=Math.min(a.length,10);setLB(a);try{localStorage.setItem('tuaphra_name',n)}catch(x){}
+ $('nm').style.display='none';renderBoard();$('sc').innerHTML+='<br><small>'+(i>=0&&i<10?'คุณได้อันดับที่ '+(i+1):'ยังไม่ติด 10 อันดับแรก')+'</small>'}
+function showBoard(){renderBoard();$('board').style.display='block';if(done)return;$('endt').textContent='🏆 อันดับผู้เล่น';$('sc').textContent='';$('nm').style.display='none';$('rp').style.display='none';$('cl').style.display='';$('end').classList.remove('win');$('end').style.display='flex'}
+function closeBoard(){$('end').style.display='none'}
+grid.addEventListener('pointerdown',()=>{if(!tStart)tStart=Date.now()},true);
+setInterval(()=>{if(tStart&&!done)$('tm').textContent='⏱ '+fmt(Math.floor((Date.now()-tStart)/1000))},500);
 </script></body></html>
